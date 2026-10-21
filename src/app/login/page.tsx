@@ -1,130 +1,219 @@
 'use client'
 
-import { useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
-import { Clapperboard, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+type Mode = 'login' | 'signup'
+
+function LoginInner() {
   const router = useRouter()
-  const supabase = createSupabaseBrowserClient()
+  const searchParams = useSearchParams()
+  const nextPath = searchParams.get('next') || '/inicio'
 
-  async function handleSubmit(e: React.FormEvent) {
+  const [mode,     setMode]     = useState<Mode>('login')
+  const [name,     setName]     = useState('')
+  const [email,    setEmail]    = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm,  setConfirm]  = useState('')
+  const [error,    setError]    = useState('')
+  const [success,  setSuccess]  = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [entered,  setEntered]  = useState(false)
+  const [animating, setAnimating] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setEntered(true), 100)
+    return () => clearTimeout(t)
+  }, [])
+
+  function switchMode(m: Mode) {
+    if (m === mode || animating) return
+    setAnimating(true)
+    setError(''); setSuccess('')
+    setTimeout(() => {
+      setMode(m); setName(''); setEmail(''); setPassword(''); setConfirm('')
+      setAnimating(false)
+    }, 180)
+  }
+
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
-
+    if (!email.trim() || !password) return
+    setLoading(true); setError('')
     try {
-      if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
-        router.push('/dashboard')
-        router.refresh()
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      })
+      if (res.ok) {
+        router.push(nextPath)
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
-        })
-        if (error) throw error
-        setError('Verifique seu e-mail para confirmar o cadastro.')
+        const d = await res.json()
+        setError(d.error || 'Email ou senha incorretos')
+        setLoading(false)
       }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao entrar. Tente novamente.'
-      setError(message)
-    } finally {
+    } catch {
+      setError('Erro de conexão')
       setLoading(false)
     }
   }
 
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault()
+    setError(''); setSuccess('')
+
+    if (!name.trim())        { setError('Nome é obrigatório'); return }
+    if (!email.trim())       { setError('Email é obrigatório'); return }
+    if (!password)           { setError('Senha é obrigatória'); return }
+    if (password.length < 6) { setError('Senha deve ter ao menos 6 caracteres'); return }
+    if (password !== confirm) { setError('As senhas não coincidem'); return }
+
+    setLoading(true)
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+      })
+      const d = await res.json()
+      if (!res.ok) {
+        setError(d.error || 'Erro ao criar conta')
+        setLoading(false)
+        return
+      }
+      if (d.autoLogin) {
+        router.push('/inicio')
+      } else {
+        setSuccess('Conta criada! Faça login com suas credenciais.')
+        switchMode('login')
+        setLoading(false)
+      }
+    } catch {
+      setError('Erro de conexão')
+      setLoading(false)
+    }
+  }
+
+  const isLogin = mode === 'login'
+
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div
+      className="w-screen flex flex-col items-center justify-center bg-white"
+      style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div
+        className="relative z-10 flex flex-col items-center gap-7 w-full max-w-xs px-8"
+        style={{
+          opacity: entered ? 1 : 0,
+          transform: entered ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'opacity 600ms ease, transform 600ms ease',
+        }}
+      >
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-violet-600 flex items-center justify-center mb-4">
-            <Clapperboard className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">AudioVisual IA</h1>
-          <p className="text-zinc-400 text-sm mt-1">Gestão inteligente de produções</p>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-black font-bold tracking-[0.3em] text-sm uppercase">LEVEL</p>
+          <p className="text-black/30 text-xs">{isLogin ? 'Acesse sua conta' : 'Crie sua conta'}</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8">
-          <h2 className="text-lg font-semibold text-white mb-6">
-            {mode === 'login' ? 'Entrar na plataforma' : 'Criar conta'}
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-300">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
-                required
-                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-violet-500"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={6}
-                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus:border-violet-500"
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-violet-600 hover:bg-violet-700 text-white"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {mode === 'login' ? 'Entrando...' : 'Criando conta...'}
-                </>
-              ) : (
-                mode === 'login' ? 'Entrar' : 'Criar conta'
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 text-center">
+        {/* Tabs */}
+        <div className="flex w-full rounded-xl bg-black/5 p-0.5 gap-0.5">
+          {(['login', 'signup'] as Mode[]).map(m => (
             <button
-              onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(null) }}
-              className="text-zinc-400 text-sm hover:text-violet-400 transition-colors"
+              key={m}
+              type="button"
+              onClick={() => switchMode(m)}
+              className="flex-1 py-2 rounded-[10px] text-xs font-medium transition-all"
+              style={{
+                background: mode === m ? '#000' : 'transparent',
+                color: mode === m ? '#fff' : 'rgba(0,0,0,0.35)',
+              }}
             >
-              {mode === 'login'
-                ? 'Não tem conta? Criar agora'
-                : 'Já tem conta? Entrar'}
+              {m === 'login' ? 'Entrar' : 'Criar conta'}
             </button>
-          </div>
+          ))}
         </div>
+
+        {/* Form */}
+        <form
+          onSubmit={isLogin ? handleLogin : handleSignup}
+          className="w-full flex flex-col gap-3"
+          style={{
+            opacity: animating ? 0 : 1,
+            transform: animating ? 'translateY(6px)' : 'translateY(0)',
+            transition: 'opacity 180ms ease, transform 180ms ease',
+          }}
+        >
+          {!isLogin && (
+            <input
+              type="text"
+              placeholder="seu nome"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              autoComplete="name"
+              autoFocus={!isLogin}
+              className="w-full bg-black/5 border border-black/10 rounded-xl px-4 py-3 text-black text-sm placeholder-black/20 outline-none focus:border-black/30 transition-colors"
+            />
+          )}
+          <input
+            type="email"
+            placeholder="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            autoFocus={isLogin}
+            autoComplete="email"
+            className="w-full bg-black/5 border border-black/10 rounded-xl px-4 py-3 text-black text-sm placeholder-black/20 outline-none focus:border-black/30 transition-colors"
+          />
+          <input
+            type="password"
+            placeholder="senha"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            className="w-full bg-black/5 border border-black/10 rounded-xl px-4 py-3 text-black text-sm placeholder-black/20 outline-none focus:border-black/30 transition-colors tracking-widest placeholder:tracking-normal"
+          />
+          {!isLogin && (
+            <input
+              type="password"
+              placeholder="confirmar senha"
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              autoComplete="new-password"
+              className="w-full bg-black/5 border border-black/10 rounded-xl px-4 py-3 text-black text-sm placeholder-black/20 outline-none focus:border-black/30 transition-colors tracking-widest placeholder:tracking-normal"
+            />
+          )}
+
+          {error && (
+            <p className="text-red-500 text-xs text-center font-medium">{error}</p>
+          )}
+          {success && (
+            <p className="text-green-500 text-xs text-center font-medium">{success}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black hover:bg-black/90 rounded-xl py-3 text-white text-sm font-medium transition-all disabled:opacity-30"
+          >
+            {loading ? '...' : isLogin ? 'Entrar' : 'Criar conta'}
+          </button>
+        </form>
+
+        {!isLogin && (
+          <p className="text-black/25 text-xs text-center leading-relaxed">
+            Novas contas têm acesso de membro.<br />
+            Administradores podem alterar permissões.
+          </p>
+        )}
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginInner />
+    </Suspense>
   )
 }

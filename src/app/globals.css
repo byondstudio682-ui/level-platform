@@ -1,4 +1,35 @@
 @import "tailwindcss";
+
+/* iOS PWA — safe areas & full screen */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+}
+
+html, body {
+  height: 100%;
+  height: -webkit-fill-available;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Full viewport height no iOS */
+.h-screen {
+  height: 100dvh !important;
+}
+
+.w-screen {
+  width: 100dvw !important;
+}
+
+/* Safe area padding helpers */
+.safe-top    { padding-top:    var(--sat); }
+.safe-bottom { padding-bottom: var(--sab); }
+.safe-left   { padding-left:   var(--sal); }
+.safe-right  { padding-right:  var(--sar); }
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -51,6 +82,11 @@
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+
+  /* Level — degradê premium monocromático escuro */
+  --level-top: #3a3a3a;
+  --level-mid: #111111;
+  --level-bot: #000000;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -128,3 +164,102 @@
     @apply font-sans;
   }
 }
+
+/* =============================================
+   LEVEL — Degradê Premium Monocromático
+   Cinza claro no topo → branco na base
+   Texto preto em todo o app
+   ============================================= */
+
+/* Fundo global fixo */
+body {
+  background: #ffffff !important;
+  color: #111111 !important;
+  min-height: 100dvh;
+}
+
+/* Grain desativado */
+.level-grain { display: none; }
+
+/* Remove fundos pretos hardcoded */
+.bg-black { background: #ffffff !important; }
+
+/* TopNav — branco */
+header.fixed {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(16px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.2) !important;
+  border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+}
+
+/* Nav pill ativa: branca com texto preto */
+/* (mantém o comportamento original do TopNav) */
+
+/* Cards e superfícies elevadas */
+.bg-zinc-950,
+.bg-zinc-900 {
+  background: rgba(240,240,240,0.85) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Inputs e formulários */
+input, textarea, select {
+  color: #111111 !important;
+  background-color: rgba(0,0,0,0.04) !important;
+  border-color: rgba(0,0,0,0.10) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: rgba(0,0,0,0.30) !important;
+}
+
+/* Texto preto — base */
+.text-black   { color: #111111 !important; }
+.text-black\/80 { color: rgba(0,0,0,0.80) !important; }
+.text-black\/60 { color: rgba(0,0,0,0.60) !important; }
+.text-black\/50 { color: rgba(0,0,0,0.50) !important; }
+.text-black\/40 { color: rgba(0,0,0,0.40) !important; }
+.text-black\/30 { color: rgba(0,0,0,0.30) !important; }
+.text-black\/20 { color: rgba(0,0,0,0.20) !important; }
+
+/* Fundos pretos semitransparentes */
+.bg-black\/3  { background-color: rgba(0,0,0,0.03) !important; }
+.bg-black\/4  { background-color: rgba(0,0,0,0.04) !important; }
+.bg-black\/5  { background-color: rgba(0,0,0,0.05) !important; }
+.bg-black\/8  { background-color: rgba(0,0,0,0.08) !important; }
+.bg-black\/10 { background-color: rgba(0,0,0,0.10) !important; }
+.bg-black\/12 { background-color: rgba(0,0,0,0.12) !important; }
+.bg-black\/20 { background-color: rgba(0,0,0,0.20) !important; }
+.bg-black\/40 { background-color: rgba(0,0,0,0.40) !important; }
+
+/* Botão preto sólido (pill ativa, CTAs) */
+.bg-black {
+  background-color: #111111 !important;
+  color: #ffffff !important;
+}
+.bg-black:hover {
+  background-color: #222222 !important;
+}
+
+/* Texto branco sobre bg-black */
+.text-white { color: #ffffff !important; }
+
+/* Bordas pretas */
+.border-black\/5  { border-color: rgba(0,0,0,0.05) !important; }
+.border-black\/8  { border-color: rgba(0,0,0,0.08) !important; }
+.border-black\/10 { border-color: rgba(0,0,0,0.10) !important; }
+.border-black\/15 { border-color: rgba(0,0,0,0.15) !important; }
+.border-black\/20 { border-color: rgba(0,0,0,0.20) !important; }
+.border-black\/25 { border-color: rgba(0,0,0,0.25) !important; }
+.border-black\/30 { border-color: rgba(0,0,0,0.30) !important; }
+
+/* Hover */
+.hover\:text-black:hover { color: #111111 !important; }
+.hover\:bg-black\/10:hover { background-color: rgba(0,0,0,0.10) !important; }
+.hover\:bg-black\/12:hover { background-color: rgba(0,0,0,0.12) !important; }
+
+/* Scrollbar discreta */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
