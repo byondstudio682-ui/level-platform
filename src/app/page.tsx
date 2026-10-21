@@ -72,7 +72,7 @@ export default function Root() {
           textTransform: 'uppercase',
           position: 'relative',
         }}>
-          BYOND LAB
+          LEVEL
         </span>
 
         <span style={{
@@ -84,7 +84,7 @@ export default function Root() {
           opacity: phase === 'logo' ? 1 : 0,
           transition: 'opacity 700ms ease 400ms',
         }}>
-          PRODUCTION STUDIO
+          BY BYOND LAB
         </span>
       </div>
 

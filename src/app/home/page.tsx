@@ -308,7 +308,7 @@ export default function HomePage() {
           color: 'rgba(255,255,255,0.90)', fontWeight: 800, fontSize: 15,
           letterSpacing: '0.18em', fontFamily: 'Inter, sans-serif',
         }}>
-          BYOND LAB
+          LEVEL
         </span>
 
         {/* Label + Ações */}
