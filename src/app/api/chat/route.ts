@@ -329,7 +329,7 @@ const TOOLS = [{
 import { adminClient as supabase } from '@/lib/auth'
 
 // Chave Gemini padrão (fallback quando usuário não tem configurada)
-const DEFAULT_GEMINI_KEY = 'REMOVED_KEY'
+const DEFAULT_GEMINI_KEY = process.env.DEFAULT_GEMINI_KEY || ''
 
 async function getKeys(userId: string) {
   const { data } = await supabase
