@@ -6,8 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LogOut, Menu, X } from 'lucide-react'
 
 const navItems = [
-  { href: '/home',          label: '⊞ Clientes' },
-  { href: '/inicio',        label: 'Módulos' },
+  { href: '/inicio',        label: '⊞ Início' },
   { href: '/tarefas',       label: 'Tarefas' },
   { href: '/calendario',    label: 'Calendário' },
   { href: '/assistente',    label: 'Assistente IA' },

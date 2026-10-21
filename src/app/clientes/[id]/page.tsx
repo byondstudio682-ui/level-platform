@@ -389,7 +389,7 @@ function ClientePageInner() {
         <div className="pt-14 flex flex-col items-center justify-center h-screen gap-4">
           <AlertCircle className="w-10 h-10 text-black/15" />
           <p className="text-black/35 text-sm">Cliente não encontrado</p>
-          <button onClick={() => router.push('/home')} className="text-black/50 text-sm underline">Voltar para clientes</button>
+          <button onClick={() => router.push('/inicio')} className="text-black/50 text-sm underline">Voltar ao início</button>
         </div>
       </div>
     )
@@ -404,11 +404,11 @@ function ClientePageInner() {
           {/* Sub-header do cliente */}
           <div className="flex items-center gap-4 mb-6 flex-shrink-0">
             <button
-              onClick={() => router.push('/home')}
+              onClick={() => router.push('/inicio')}
               className="flex items-center gap-1.5 text-black/35 hover:text-black/70 transition-colors text-sm"
             >
               <ArrowLeft className="w-4 h-4" />
-              Clientes
+              Início
             </button>
             <div className="w-px h-4 bg-black/10" />
             <ClientAvatar name={client.name} size={36} />
