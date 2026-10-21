@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   ArrowLeft, LayoutDashboard, CheckSquare,
@@ -416,6 +418,19 @@ function TabInfo({ client, updateClient }: {
 }
 
 // ─── Pagina principal do cliente ──────────────────────────────────────────────
+export default function ClientePage() {
+  return (
+    <Suspense fallback={
+      <div style={{ width: '100vw', height: '100dvh', background: '#080808', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 32, height: 32, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.10)', borderTopColor: 'rgba(255,255,255,0.50)', animation: 'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    }>
+      <ClientePageInner />
+    </Suspense>
+  )
+}
+
 type TabId = 'overview' | 'tasks' | 'calendar' | 'info'
 
 const TABS: { id: TabId; label: string; icon: any }[] = [
@@ -427,7 +442,7 @@ const TABS: { id: TabId; label: string; icon: any }[] = [
 
 const TAB_KEY = (id: string) => `byond_client_tab_${id}`
 
-export default function ClientePage() {
+function ClientePageInner() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const { clients, loading: loadingClients, updateClient } = useClients()
